@@ -190,11 +190,12 @@ head(df_control,10)
  
 **Q6:** Field 21003 contains the information of the age of participants, same as field 4803. Note that some of them have more than one age. Can you guess why?
 
-The "duplicate information" in 21003 and 4803 indicated information collected from different number of visits. For example, f.21003.0.0 indicates the initial visit at the start of the trial; f.21003.0.1 indicates the age of participants at the first visit, etc, similar to field 4803.
+The "duplicate information" in 21003 and 4803 fields indicates information collected from different number of visits. For example, f.21003.0.0 indicates the initial visit at the start of the trial; f.21003.0.1 indicates the age of participants at the first visit, etc, similar to field 4803.
 
 **Q7:** For those with more than one age records, which age do you think should be used in the genetic association analysis?
 
-The age 
+For the control group, the age used in the genetic association analysis should be the age at pre-screening stage/initial visit.
+For the case group, the age used in the genetic association analysis should be the age at the visit which the participant first answered 'Yes' to the questionnaire.
 
 **Q8:** Please compute a summary of age information for controls (you can use `summary()` function in R):
 ```{r}
@@ -223,10 +224,38 @@ fit_1<-lm(mpg ~ weight, auto_data)
 summary(fit_1)
 ```
 
+Yes, there is association between 'mpg of the car' and 'weight of the car'. It appears that they have a negative association due to the estimated coefficient is negative. The association is significant because p-value is less than 0.05.
+
 **Q10:** Please create a new variable to indicate cars having MPG greater than 23 as 1, otherwise 0, then use logistic regrssion via `glm()` function to analyze association between weight and this new variable you just created. Please comment on what you find.
 
-**Q11:** Find the `Estimates` from your asociation results summary. How do you interpret the estimated effects of weight in the context of linear regression, and in the context of logistic regression? (this question might be a bit challenging if you are not familiar with regression analysis; don't sweat if you cannot find the answer for it).
+The weight of the car has a negative logistic association with the binary outcome of mpg of the car greater than 23. The estimated coefficient is negative, indicating that the possibility of mpg >23 decreases with an increase in weight of the car. By comparing null deviance and residual deviance, the predictor 'weight' improves the model compared with intercept alone.
+
+
+**Q11:** Find the `Estimates` from your association results summary. How do you interpret the estimated effects of weight in the context of linear regression, and in the context of logistic regression? (this question might be a bit challenging if you are not familiar with regression analysis; don't sweat if you cannot find the answer for it).
+
+Logistic Regression: For every one unit increase in weight, the log odds of mpg greater than 23(vs. lower or equal to 23) decreases by 0.0040954.
+
+Linear Regression: Every one unit increase in weight decreases the odds of mpg greater than 23(vs. lower or equal to 23) by a factor of 0.995913.
+
 
 ```{r}
-#YOUR CODE
+auto_new = auto_data %>% 
+  mutate(
+    big_mpg = if_else(mpg>23, 1, 0)
+  )
+logit = glm(big_mpg ~ weight, data = auto_new, family = "binomial")
+logit
+summary(logit)
+
+
+theta = -0.0040954
+odds = exp(theta)
+odds
+# logit of prob = log odds
+prob = (exp(theta) / (1 + exp(theta)))
+prob # Y=1
 ```
+
+
+
+

@@ -1987,9 +1987,9 @@ div.tocify {
 <div id="covariates" class="section level3">
 <h3>Covariates</h3>
 <p><strong>Q6:</strong> Field 21003 contains the information of the age of participants, same as field 4803. Note that some of them have more than one age. Can you guess why?</p>
-<p>The “duplicate information” in 21003 and 4803 indicated information collected from different number of visits. For example, f.21003.0.0 indicates the initial visit at the start of the trial; f.21003.0.1 indicates the age of participants at the first visit, etc, similar to field 4803.</p>
+<p>The “duplicate information” in 21003 and 4803 fields indicates information collected from different number of visits. For example, f.21003.0.0 indicates the initial visit at the start of the trial; f.21003.0.1 indicates the age of participants at the first visit, etc, similar to field 4803.</p>
 <p><strong>Q7:</strong> For those with more than one age records, which age do you think should be used in the genetic association analysis?</p>
-<p>The age</p>
+<p>For the control group, the age used in the genetic association analysis should be the age at pre-screening stage/initial visit. For the case group, the age used in the genetic association analysis should be the age at the visit which the participant first answered ‘Yes’ to the questionnaire.</p>
 <p><strong>Q8:</strong> Please compute a summary of age information for controls (you can use <code>summary()</code> function in R):</p>
 <div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a>df_control <span class="op">%&gt;%</span><span class="st"> </span></span>
 <span id="cb23-2"><a href="#cb23-2"></a><span class="st">  </span><span class="kw">select</span>(f.<span class="dv">21003</span>.<span class="fl">0.0</span>,f.<span class="dv">21003</span>.<span class="fl">1.0</span>,f.<span class="dv">21003</span>.<span class="fl">2.0</span>,f.<span class="dv">21003</span>.<span class="fl">3.0</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
@@ -2028,9 +2028,62 @@ div.tocify {
 ## Residual standard error: 4.333 on 390 degrees of freedom
 ## Multiple R-squared:  0.6926, Adjusted R-squared:  0.6918 
 ## F-statistic: 878.8 on 1 and 390 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p>Yes, there is association between ‘mpg of the car’ and ‘weight of the car’. It appears that they have a negative association due to the estimated coefficient is negative. The association is significant because p-value is less than 0.05.</p>
 <p><strong>Q10:</strong> Please create a new variable to indicate cars having MPG greater than 23 as 1, otherwise 0, then use logistic regrssion via <code>glm()</code> function to analyze association between weight and this new variable you just created. Please comment on what you find.</p>
-<p><strong>Q11:</strong> Find the <code>Estimates</code> from your asociation results summary. How do you interpret the estimated effects of weight in the context of linear regression, and in the context of logistic regression? (this question might be a bit challenging if you are not familiar with regression analysis; don’t sweat if you cannot find the answer for it).</p>
-<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a><span class="co">#YOUR CODE</span></span></code></pre></div>
+<p>The weight of the car has a negative logistic association with the binary outcome of mpg of the car greater than 23. The estimated coefficient is negative, indicating that the possibility of mpg &gt;23 decreases with an increase in weight of the car. By comparing null deviance and residual deviance, the predictor ‘weight’ improves the model compared with intercept alone.</p>
+<p><strong>Q11:</strong> Find the <code>Estimates</code> from your association results summary. How do you interpret the estimated effects of weight in the context of linear regression, and in the context of logistic regression? (this question might be a bit challenging if you are not familiar with regression analysis; don’t sweat if you cannot find the answer for it).</p>
+<p>Logistic Regression: For every one unit increase in weight, the log odds of mpg greater than 23(vs. lower or equal to 23) decreases by 0.0040954.</p>
+<p>Linear Regression: Every one unit increase in weight decreases the odds of mpg greater than 23(vs. lower or equal to 23) by a factor of 0.995913.</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a>auto_new =<span class="st"> </span>auto_data <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb27-2"><a href="#cb27-2"></a><span class="st">  </span><span class="kw">mutate</span>(</span>
+<span id="cb27-3"><a href="#cb27-3"></a>    <span class="dt">big_mpg =</span> <span class="kw">if_else</span>(mpg<span class="op">&gt;</span><span class="dv">23</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb27-4"><a href="#cb27-4"></a>  )</span>
+<span id="cb27-5"><a href="#cb27-5"></a>logit =<span class="st"> </span><span class="kw">glm</span>(big_mpg <span class="op">~</span><span class="st"> </span>weight, <span class="dt">data =</span> auto_new, <span class="dt">family =</span> <span class="st">&quot;binomial&quot;</span>)</span>
+<span id="cb27-6"><a href="#cb27-6"></a>logit</span>
+<span id="cb27-7"><a href="#cb27-7"></a><span class="kw">summary</span>(logit)</span>
+<span id="cb27-8"><a href="#cb27-8"></a></span>
+<span id="cb27-9"><a href="#cb27-9"></a></span>
+<span id="cb27-10"><a href="#cb27-10"></a>theta =<span class="st"> </span><span class="fl">-0.0040954</span></span>
+<span id="cb27-11"><a href="#cb27-11"></a>odds =<span class="st"> </span><span class="kw">exp</span>(theta)</span>
+<span id="cb27-12"><a href="#cb27-12"></a>odds</span>
+<span id="cb27-13"><a href="#cb27-13"></a><span class="co"># logit of prob = log odds</span></span>
+<span id="cb27-14"><a href="#cb27-14"></a>prob =<span class="st"> </span>(<span class="kw">exp</span>(theta) <span class="op">/</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">+</span><span class="st"> </span><span class="kw">exp</span>(theta)))</span>
+<span id="cb27-15"><a href="#cb27-15"></a>prob <span class="co"># Y=1</span></span></code></pre></div>
+<pre><code>## 
+## Call:  glm(formula = big_mpg ~ weight, family = &quot;binomial&quot;, data = auto_new)
+## 
+## Coefficients:
+## (Intercept)       weight  
+##   11.444801    -0.004095  
+## 
+## Degrees of Freedom: 391 Total (i.e. Null);  390 Residual
+## Null Deviance:       542.6 
+## Residual Deviance: 234.5     AIC: 238.5
+## 
+## Call:
+## glm(formula = big_mpg ~ weight, family = &quot;binomial&quot;, data = auto_new)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.3700  -0.3330  -0.0277   0.4102   2.7685  
+## 
+## Coefficients:
+##               Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept) 11.4448009  1.1350641  10.083   &lt;2e-16 ***
+## weight      -0.0040954  0.0004115  -9.952   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 542.60  on 391  degrees of freedom
+## Residual deviance: 234.54  on 390  degrees of freedom
+## AIC: 238.54
+## 
+## Number of Fisher Scoring iterations: 6
+## 
+## [1] 0.995913
+## [1] 0.4989762</code></pre>
 </div>
 </div>
 
